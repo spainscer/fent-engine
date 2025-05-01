@@ -41,7 +41,6 @@
 	<haxelib name="flixel-ui"/>
 	<haxelib name="polymod"/>
  	<haxelib name="discord_rpc"/>
-	<haxelib name="flxanimate"/>
 	<haxelib name="hxCodec" if="VIDEOS_ALLOWED"/>
 
 	<!-- ______________________________ Haxedefines _____________________________ -->
