@@ -4,6 +4,7 @@ import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.graphics.FlxGraphic;
 import sys.FileSystem;
+import flixel.math.FlxMath;
 
 using StringTools;
 
@@ -41,9 +42,16 @@ class HealthIcon extends FlxSprite
 		initialWidth = width;
 		initialHeight = height;
 
-		animation.add('icon', [0, 1], 0, false, isPlayer);
+		animation.add('icon', [0, 1, 2], 0, false, isPlayer);
 		animation.play('icon');
 		scrollFactor.set();
+	}
+
+	public function bop(elapsed:Float)
+	{
+		var mult:Float = FlxMath.lerp(1, scale.x, FlxMath.bound(1 - (elapsed * 9), 0, 1));
+		scale.set(mult, mult);
+		updateHitbox();
 	}
 
 	override function update(elapsed:Float)
