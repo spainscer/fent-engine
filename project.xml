@@ -3,7 +3,15 @@
 
 	<!-- _________________________ Application Settings _________________________ -->
 
-	<app title="SML MANIA" file="sml" packageName="com.ninjamuffin99.funkin" package="com.ninjamuffin99.funkin" main="Main" version="0.2.0" company="hai" />
+	<app
+		title="Friday Night Funkin': Fent Engine" 
+        main="Main"
+		file="FentEngine" 
+        packageName="com.drug.dealer"
+		package="com.drug.dealer"
+		version="0.1.0" 
+        company="ilovedrugs" 
+    />
 
 	<!--The flixel preloader is not accurate in Chrome. You can use it regularly if you embed the swf into a html file
 		or you can set the actual size of your file manually at "FlxPreloaderBase-onUpdate-bytesTotal"-->
@@ -15,7 +23,7 @@
 	<!-- ____________________________ Window Settings ___________________________ -->
 
 	<!--These window settings apply to all targets-->
-	<window width="1280" height="720" fps="" background="#000000" hardware="true" vsync="false" />
+	<window width="1280" height="720" fps="60" background="#000000" hardware="true" vsync="false" />
 
 	<!--Desktop-specific-->
 	<window if="desktop" orientation="landscape" fullscreen="false" resizable="true" />
