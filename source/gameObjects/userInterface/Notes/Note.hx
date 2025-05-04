@@ -33,6 +33,7 @@ class Note extends FNFSprite
 
 	public var sustainLength:Float = 0;
 	public var isSustainNote:Bool = false;
+	public static var isSustainNoteEnd:Bool = false;
 
 	// only useful for charting stuffs
 	public var chartSustain:FlxSprite = null;
@@ -259,16 +260,19 @@ class Note extends FNFSprite
 
 		// trace(prevNote);
 
+		isSustainNoteEnd = false;
 		if (isSustainNote && prevNote != null)
 		{
 			newNote.noteSpeed = prevNote.noteSpeed;
 			newNote.alpha = (Init.trueSettings.get('Opaque Holds')) ? 1 : 0.6;
 			newNote.animation.play('holdend');
 			newNote.updateHitbox();
+			isSustainNoteEnd = true;
 
 			if (prevNote.isSustainNote)
 			{
 				prevNote.animation.play('hold');
+				isSustainNoteEnd = false;
 
 				prevNote.scale.y *= Conductor.stepCrochet / 100 * (43 / 52) * 1.5 * prevNote.noteSpeed;
 				prevNote.updateHitbox();

@@ -87,7 +87,6 @@ class OptionsMenuState extends MusicBeatState
 					['', null],
 					['Disable Antialiasing', getFromOption],
 					['No Camera Note Movement', getFromOption],
-					['Fixed Judgements', getFromOption],
 					['Simply Judgements', getFromOption],
 					['', null],
 					['Accessibility Settings', null],

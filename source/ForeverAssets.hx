@@ -112,6 +112,34 @@ class ForeverAssets
 		return rating;
 	}
 
+	// public static function generateHoldSplashes(strum:UIStaticArrow, noteData:Int, isEnd:Bool = false):FlxSprite
+	// {
+	// 	var tempSplash:FlxSprite = new FlxSprite(strum.initialX,strum.initialY);
+	// 	tempSplash.frames = Paths.getSparrowAtlas('noteskins/notes/holdSplashes');
+	// 	tempSplash.animation.addByPrefix('PurpleHold', 'PurpleHold', true, 24);
+	// 	tempSplash.animation.addByPrefix('PurpleEnd', 'PurpleEnd', false, 24);
+	// 	tempSplash.animation.addByPrefix('BlueHold', 'BlueHold', true, 24);
+	// 	tempSplash.animation.addByPrefix('BlueEnd', 'BlueEnd', false, 24);
+	// 	tempSplash.animation.addByPrefix('GreenHold', 'GreenHold', true, 24);
+	// 	tempSplash.animation.addByPrefix('GreenEnd', 'GreenEnd', false, 24);
+	// 	tempSplash.animation.addByPrefix('RedHold', 'RedHold', true, 24);
+	// 	tempSplash.animation.addByPrefix('RedEnd', 'RedEnd', false, 24);
+
+	// 	switch (noteData)
+	// 	{
+	// 		case 0:
+	// 			tempSplash.animation.play(isEnd ? 'RedEnd' : 'RedHold');
+	// 		case 1:
+	// 			tempSplash.animation.play(isEnd ? 'BlueEnd' : 'BlueHold');
+	// 		case 2:
+	// 			tempSplash.animation.play(isEnd ? 'GreenEnd' : 'GreenHold');
+	// 		case 3:
+	// 			tempSplash.animation.play(isEnd ? 'PurpleEnd' : 'PurpleHold');
+	// 	}
+
+	// 	return tempSplash;
+	// }
+
 	public static function generateNoteSplashes(asset:String, assetModifier:String = 'base', baseLibrary:String, noteData:Int):NoteSplash
 	{
 		//

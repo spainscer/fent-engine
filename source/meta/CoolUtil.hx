@@ -2,6 +2,7 @@ package meta;
 
 import lime.utils.Assets;
 import meta.state.PlayState;
+import haxe.io.Path;
 
 using StringTools;
 
@@ -9,11 +10,53 @@ using StringTools;
 import sys.FileSystem;
 #end
 
+#if sys
+import sys.FileSystem;
+import sys.io.File;
+#end
+
 class CoolUtil
 {
 	// tymgus45
 	public static var difficultyArray:Array<String> = ['EASY', "NORMAL", "HARD"];
 	public static var difficultyLength = difficultyArray.length;
+
+	public static inline function getFileStringFromPath(file:String):String
+		return Path.withoutDirectory(Path.withoutExtension(file));
+
+	public static function findFilesInPath(path:String, extns:Array<String>, ?filePath:Bool = false):Array<String>
+	{
+		var files:Array<String> = [];
+
+		if (FileSystem.exists(path))
+		{
+			for (file in FileSystem.readDirectory(path))
+			{
+				var path = haxe.io.Path.join([path, file]);
+				if (!FileSystem.isDirectory(path))
+				{
+					for (extn in extns)
+					{
+						if (file.endsWith(extn))
+						{
+							if (filePath)
+								files.push(path);
+							else
+								files.push(file);
+						}
+					}
+				}
+				else // ! YAY !!!! -lunar
+				{
+					var pathsFiles:Array<String> = findFilesInPath(path, extns);
+
+					for (_ in pathsFiles)
+						files.push(_);
+				}
+			}
+		}
+		return files;
+	}
 
 	public static function difficultyFromNumber(number:Int):String
 	{

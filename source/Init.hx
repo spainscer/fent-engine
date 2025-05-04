@@ -129,12 +129,6 @@ class Init extends FlxState
 			NOT_FORCED,
 			['never', 'freeplay only', 'always']
 		],
-		'Fixed Judgements' => [
-			false,
-			Checkmark,
-			"Fixes the judgements to the camera instead of to the world itself, making them easier to read.", 
-			NOT_FORCED
-		],
 		'Simply Judgements' => [
 			false,
 			Checkmark,
