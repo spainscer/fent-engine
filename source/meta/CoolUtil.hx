@@ -18,11 +18,18 @@ import sys.io.File;
 class CoolUtil
 {
 	// tymgus45
+	public static var defaultDifficulties:Array<String> = ['EASY', "NORMAL", "HARD"];
+	public static var defaultDifficulty:String = 'Hard'; // The chart that has no suffix and starting difficulty on Freeplay/Story Mode
+	public static var difficulties:Array<String> = [];
+
 	public static var difficultyArray:Array<String> = ['EASY', "NORMAL", "HARD"];
 	public static var difficultyLength = difficultyArray.length;
 
 	public static inline function getFileStringFromPath(file:String):String
 		return Path.withoutDirectory(Path.withoutExtension(file));
+
+	inline public static function quantize(f:Float, snap:Float)
+		return (Math.fround(f * snap) / snap);
 
 	public static function findFilesInPath(path:String, extns:Array<String>, ?filePath:Bool = false):Array<String>
 	{

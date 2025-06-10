@@ -10,6 +10,9 @@ import openfl.utils.AssetType;
 import openfl.utils.Assets as OpenFlAssets;
 import sys.FileSystem;
 import sys.io.File;
+import flixel.graphics.FlxGraphic;
+import openfl.display.BitmapData;
+import openfl.display3D.textures.Texture;
 
 class Paths
 {
@@ -19,6 +22,18 @@ class Paths
 
 	// level we're loading
 	static var currentLevel:String;
+
+	public static var currentTrackedAssets:Map<String, FlxGraphic> = [];
+	public static var uniqueRAMImages:Array<String> = [];
+    public static var uniqueVRMImages:Array<String> = [];
+	public static var expectedMemoryBytes:Float = 0;
+	public static var localTrackedAssets:Array<String> = [];
+	public static var dumpExclusions:Array<String> =
+	[
+		'assets/music/freakyMenu.$SOUND_EXT',
+		'assets/shared/music/breakfast.$SOUND_EXT',
+		'assets/shared/music/foreverMenu.$SOUND_EXT',
+	];
 
 	// set the current level top the condition of this function if called
 	static public function setCurrentLevel(name:String)
@@ -175,5 +190,105 @@ class Paths
 		return (FlxAtlasFrames.fromSpriteSheetPacker(image(key, library), file('images/$key.txt', library)));
 	}
 
+	inline static public function getContent(asset:String):Null<String>
+	{
+		#if sys
+		if (FileSystem.exists(asset))
+			return File.getContent(asset);
+		#else
+		if (Assets.exists(asset))
+			return Assets.getText(asset);
+		#end
+
+		return null;
+	}
+
+
+	static function getExpectedMemory(){
+		expectedMemoryBytes = 0;
+
+		var processed:Array<FlxGraphic> =[];
+
+		@:privateAccess
+		for (key in FlxG.bitmap._cache.keys())
+		{
+			var obj = FlxG.bitmap._cache.get(key);
+			if (processed.contains(obj) || uniqueVRMImages.contains(key))continue;
+			expectedMemoryBytes += obj.width * obj.height * 4;
+			processed.push(obj);
+		}
+		for (key in currentTrackedAssets.keys())
+		{
+			var obj = currentTrackedAssets.get(key);
+			if (processed.contains(obj) || uniqueVRMImages.contains(key))continue;
+			expectedMemoryBytes += obj.width * obj.height * 4;
+			processed.push(obj);
+		}
+		processed = null;
+    }
+
+	public static function returnGraphic(key:String, ?library:String, throwToGPU:Bool = false, ?prefix:String = 'images')
+		{
+			// if (!ClientPrefs.useGPUCaching)
+			// 	throwToGPU = false;
 	
+			var path = getPath('$prefix/$key.png', IMAGE, library);
+			var bitmap:BitmapData = null;
+	
+			if(currentTrackedAssets.exists(path)){
+				if (throwToGPU && !uniqueVRMImages.contains(path)){
+					if (!localTrackedAssets.contains(path) && !dumpExclusions.contains(path))
+					{
+						// get rid of it
+						var obj = currentTrackedAssets.get(path);
+						@:privateAccess
+						if (obj != null)
+						{
+							openfl.Assets.cache.removeBitmapData(path);
+							FlxG.bitmap._cache.remove(path);
+							obj.destroy();
+							currentTrackedAssets.remove(path);
+							if (uniqueRAMImages.contains(path))uniqueRAMImages.remove(path);
+							if (uniqueVRMImages.contains(path))uniqueVRMImages.remove(path);
+						}
+					}
+				}else{
+					localTrackedAssets.push(path);
+					return currentTrackedAssets.get(path);
+				}
+			}
+			
+			if(OpenFlAssets.exists(path, IMAGE))
+				bitmap = OpenFlAssets.getBitmapData(path);
+			
+			if(bitmap != null){
+				if(throwToGPU){
+					// based on what smokey learnt + my own research
+					// should be fine? idk lole
+					var tex:Texture = FlxG.stage.context3D.createTexture(bitmap.width, bitmap.height, BGRA, false);
+					tex.uploadFromBitmapData(bitmap);
+					// free mem
+					bitmap.dispose();
+					bitmap.disposeImage();
+					// push shit
+					bitmap = BitmapData.fromTexture(tex);
+					if (!uniqueVRMImages.contains(path))uniqueVRMImages.push(path);
+					uniqueRAMImages.remove(path);
+				}else{
+					if (!uniqueRAMImages.contains(path))uniqueRAMImages.push(path);
+					
+					uniqueVRMImages.remove(path);
+				}
+	
+				@:privateAccess
+				var grafic = FlxGraphic.createGraphic(bitmap, key, false, false);
+				grafic.persist = true;
+				grafic.destroyOnNoUse = false;
+				localTrackedAssets.push(path);
+				currentTrackedAssets.set(path, grafic);
+				getExpectedMemory();
+				return grafic;
+			}
+			return null;
+		}
 }

@@ -39,9 +39,8 @@ import openfl.filters.ShaderFilter;
 import openfl.media.Sound;
 import openfl.utils.Assets;
 import sys.io.File;
-import meta.scripting.Script;
-import meta.scripting.ScriptGroup;
-import meta.scripting.ScriptUtil;
+import meta.scripting.ScriptConstructor;
+import meta.scripting.HScript.Script;
 
 using StringTools;
 
@@ -134,7 +133,7 @@ class PlayState extends MusicBeatState
 
 	public static var songLength:Float = 0;
 
-	private var stageBuild:Stage;
+	//private var stageBuild:Stage;
 
 	public static var uiHUD:ClassHUD;
 
@@ -160,7 +159,11 @@ class PlayState extends MusicBeatState
 	public static var lastCombo:Array<FlxSprite>;
 
 	public static var instance:PlayState;
-	public var scripts:ScriptGroup;
+	public var allScripts:Array<ScriptConstructor> = [];
+	var _scriptMap:Map<String, Script> = new Map<String, Script>();
+    public function getScript(n:String)return _scriptMap.get(n);
+    public function getScriptVar(n:String, f:String)return getScript(n).get(f);
+	public static var stage:ScriptConstructor;
 
 	// at the beginning of the playstate
 	override public function create()
@@ -168,9 +171,6 @@ class PlayState extends MusicBeatState
 		super.create();
 
 		instance = this;
-
-		scripts = new ScriptGroup();
-		scripts.onAddScript.push(onAddScript);
 
 		// reset any values and variables that are static
 		songScore = 0;
@@ -216,8 +216,6 @@ class PlayState extends MusicBeatState
 		Conductor.mapBPMChanges(SONG);
 		Conductor.changeBPM(SONG.bpm);
 
-		scripts.setAll("bpm", Conductor.bpm);
-
 		/// here we determine the chart type!
 		// determine the chart type here
 		determinedChartType = "FNF";
@@ -234,9 +232,6 @@ class PlayState extends MusicBeatState
 		displayRating('sick', 'early', true);
 		popUpCombo(true);
 
-		stageBuild = new Stage(curStage);
-		add(stageBuild);
-
 		/*
 			Everything related to the stages aside from things done after are set in the stage class!
 			this means that the girlfriend's type, boyfriend's position, dad's position, are all there
@@ -249,7 +244,21 @@ class PlayState extends MusicBeatState
 		 */
 
 		// set up characters here too
-		gf = new Character(0, 0, stageBuild.returnGFtype(curStage));
+		var gfVersion:String = 'gf';
+
+		switch (curStage)
+		{
+			case 'highway':
+				gfVersion = 'gf-car';
+			case 'mall' | 'mallEvil':
+				gfVersion = 'gf-christmas';
+			case 'school':
+				gfVersion = 'gf-pixel';
+			case 'schoolEvil':
+				gfVersion = 'gf-pixel';
+		}
+
+		gf = new Character(0, 0, gfVersion);
 		gf.scrollFactor.set(0.95, 0.95);
 		gf.camera = camCharacter;
 
@@ -258,18 +267,17 @@ class PlayState extends MusicBeatState
 		boyfriend.camera = camCharacter;
 		dadOpponent.camera = camCharacter;
 
-		boyfriendGroup = new FlxSpriteGroup(770, 100);
+		boyfriendGroup = new FlxSpriteGroup(770, 400);
 		dadGroup = new FlxSpriteGroup(100, 100);
 		gfGroup = new FlxSpriteGroup(400, 130);
 
-		initScripts();
 		// if you want to change characters later use setCharacter() instead of new or it will break
 
 		var camPos:FlxPoint = new FlxPoint(gf.getMidpoint().x - 100, boyfriend.getMidpoint().y - 100);
 
 		// set the dad's position (check the stage class to edit that!)
 		// reminder that this probably isn't the best way to do this but hey it works I guess and is cleaner
-		stageBuild.dadPosition(curStage, dadOpponent, gf, camPos, SONG.player2);
+		//stageBuild.dadPosition(curStage, dadOpponent, gf, camPos, SONG.player2);
 
 		// I don't like the way I'm doing this, but basically hardcode stages to charts if the chart type is the base fnf one
 		// (forever engine charts will have non hardcoded stages)
@@ -281,19 +289,19 @@ class PlayState extends MusicBeatState
 		// isPixel = true;
 
 		// reposition characters
-		stageBuild.repositionPlayers(curStage, boyfriend, dadOpponent, gf);
+		//stageBuild.repositionPlayers(curStage, boyfriend, dadOpponent, gf);
 
 		// add characters
 		gfGroup.add(gf);
 
 		// add limo cus dumb layering
-		if (curStage == 'highway')
-			add(stageBuild.limo);
+		// if (curStage == 'highway')
+		// 	add(stageBuild.limo);
 
 		dadGroup.add(dadOpponent);
 		boyfriendGroup.add(boyfriend);
 
-		add(stageBuild.foreground);
+		//add(stageBuild.foreground);
 
 		add(gfGroup);
 		add(dadGroup);
@@ -386,6 +394,39 @@ class PlayState extends MusicBeatState
 		dialogueHUD.bgColor.alpha = 0;
 		FlxG.cameras.add(dialogueHUD);
 
+		stage = new ScriptConstructor('images/backgrounds/${curStage}','stage');
+		@:privateAccess {
+			stage.script.scriptInterpreter.curExpr.line = 0;
+		}
+        _scriptMap.set(curStage, stage.script);
+        allScripts.push(stage);
+		add(stage);
+
+		var daPath:String = 'assets/images/backgrounds/${curStage}/scripts';
+        if (FileSystem.exists(daPath) && FileSystem.isDirectory(daPath)) {
+            var files:Array<String> = FileSystem.readDirectory(daPath);
+            if (files.length > 0) {
+                for (file in files) {
+                    var lastIndex:Int = file.lastIndexOf(".");
+                    var fileFixed:String = file;
+                    if (lastIndex != -1) {
+                        var fileFixed:String = file.substr(0, lastIndex);
+                        trace('Currently loading additional script ${file}');
+                        var daScript:ScriptConstructor = new ScriptConstructor('images/backgrounds/${curStage}/scripts', fileFixed);
+                        _scriptMap.set(file, daScript.script);
+                        allScripts.push(daScript);
+                        add(daScript);
+                    }
+                }
+            }
+        }
+
+		for (hScript in allScripts)
+		    add(hScript.foreground);
+
+		for (hScript in allScripts)
+            hScript.onCreate();
+
 		// call the funny intro cutscene depending on the song
 		if (!skipCutscenes())
 			songIntroCutscene();
@@ -422,23 +463,21 @@ class PlayState extends MusicBeatState
 		var shader:GraphicsShader = new GraphicsShader("", File.getContent("./assets/shaders/vhs.frag"));
 		FlxG.camera.setFilters([new ShaderFilter(shader)]);
 		*/
-
-		scripts.executeAllFunc("create");
 	}
 
 	var staticDisplace:Int = 0;
 
 	override public function update(elapsed:Float)
 	{
-		stageBuild.stageUpdateConstant(elapsed, boyfriend, gf, dadOpponent);
+		//stageBuild.stageUpdateConstant(elapsed, boyfriend, gf, dadOpponent);
 
 		super.update(elapsed);
 
-		if (scripts != null)
-			scripts.update(elapsed);
-
 		FlxG.camera.followLerp = elapsed * 2;
 		camCharacter.followLerp = elapsed * 2;
+
+		for (hScript in allScripts)
+		    hScript.update(elapsed);
 
 		if (health > 2)
 			health = 2;
@@ -477,6 +516,8 @@ class PlayState extends MusicBeatState
 				paused = true;
 
 				// open pause substate
+				for (hScript in allScripts)
+					hScript.onPause();
 				openSubState(new PauseSubState(boyfriend.getScreenPosition().x, boyfriend.getScreenPosition().y));
 				updateRPC(true);
 			}
@@ -488,10 +529,11 @@ class PlayState extends MusicBeatState
 				if ((FlxG.keys.justPressed.SEVEN) && (!startingSong))
 				{
 					resetMusic();
-					if (Init.trueSettings.get('Use Forever Chart Editor'))
-						Main.switchState(this, new ChartingState());
-					else
-						Main.switchState(this, new OriginalChartingState());
+					// if (Init.trueSettings.get('Use Forever Chart Editor'))
+					// 	Main.switchState(this, new ChartingState());
+					// else
+					 	Main.switchState(this, new OriginalChartingState());
+					//Main.switchState(this, new PsychChartingState());
 				}
 			}
 
@@ -645,6 +687,9 @@ class PlayState extends MusicBeatState
 
 				resetMusic();
 
+				for (hScript in allScripts)
+					hScript.onGameOver();
+
 				openSubState(new GameOverSubstate(boyfriend.getScreenPosition().x, boyfriend.getScreenPosition().y));
 
 				// discord stuffs should go here
@@ -775,6 +820,8 @@ class PlayState extends MusicBeatState
 						{
 							vocals.volume = 0;
 							missNoteCheck((Init.trueSettings.get('Ghost Tapping')) ? true : false, daNote.noteData, boyfriend, true);
+							for (hScript in allScripts)
+								hScript.noteMiss(daNote);
 							// ambiguous name
 							Timings.updateAccuracy(0);
 						}
@@ -895,18 +942,17 @@ class PlayState extends MusicBeatState
 			if (characterStrums.receptors.members[coolNote.noteData] != null)
 				characterStrums.receptors.members[coolNote.noteData].playAnim('confirm', true);
 
+			for (hScript in allScripts)
+                hScript.goodNoteHit(characterStrums.notesGroup.members.indexOf(coolNote), coolNote.noteData, coolNote.isSustainNote);
+
 			if (canDisplayJudgement)
 			{
 				// special thanks to sam, they gave me the original system which kinda inspired my idea for this new one
 
 				// get the note ms timing
 				var noteDiff:Float = Math.abs(coolNote.strumTime - Conductor.songPosition);
-				trace(noteDiff);
 				// get the timing
-				if (coolNote.strumTime < Conductor.songPosition)
-					ratingTiming = "late";
-				else
-					ratingTiming = "early";
+				ratingTiming = coolNote.strumTime < Conductor.songPosition ? "late" : "early";
 
 				// loop through all avaliable judgements
 				var foundRating:String = 'miss';
@@ -958,7 +1004,6 @@ class PlayState extends MusicBeatState
 			character.playAnim('sing' + stringDirection.toUpperCase() + 'miss', lockMiss);
 		}
 		decreaseCombo(popMiss);
-
 		//
 	}
 
@@ -1331,8 +1376,8 @@ class PlayState extends MusicBeatState
 		previousFrameTime = FlxG.game.ticks;
 		lastReportedPlayheadPosition = 0;
 
-		if (ScriptUtil.hasPause(scripts.executeAllFunc("startSong")))
-			return;
+		for (hScript in allScripts)
+		    hScript.onSongStart();
 
 		if (!paused)
 		{
@@ -1358,7 +1403,6 @@ class PlayState extends MusicBeatState
 
 		var songData = SONG;
 		Conductor.changeBPM(songData.bpm);
-		scripts.setAll("bpm", Conductor.bpm);
 
 		// String that contains the mode defined here so it isn't necessary to call changePresence for each mode
 		songDetails = CoolUtil.dashToSpace(SONG.song) + ' - ' + CoolUtil.difficultyFromNumber(storyDifficulty);
@@ -1411,6 +1455,9 @@ class PlayState extends MusicBeatState
 	override function stepHit()
 	{
 		super.stepHit();
+
+		for (hScript in allScripts)
+		    hScript.onStepHit(curStep);
 		///*
 		if (songMusic.time > Conductor.songPosition + 20 || songMusic.time < Conductor.songPosition - 20)
 			resyncVocals();
@@ -1434,6 +1481,9 @@ class PlayState extends MusicBeatState
 	{
 		super.beatHit();
 
+		for (hScript in allScripts)
+		    hScript.onBeatHit(curBeat);
+
 		if ((FlxG.camera.zoom < 1.35 && camCharacter.zoom < 1.35 && curBeat % 4 == 0) && (!Init.trueSettings.get('Reduced Movements')))
 		{
 			FlxG.camera.zoom += 0.015;
@@ -1449,7 +1499,7 @@ class PlayState extends MusicBeatState
 		charactersDance(curBeat);
 
 		// stage stuffs
-		stageBuild.stageUpdate(curBeat, boyfriend, gf, dadOpponent);
+	//	stageBuild.stageUpdate(curBeat, boyfriend, gf, dadOpponent);
 	}
 
 	//
@@ -1523,6 +1573,9 @@ class PlayState extends MusicBeatState
 		vocals.volume = 0;
 		if (SONG.validScore)
 			Highscore.saveScore(SONG.song, songScore, storyDifficulty);
+
+		for (hScript in allScripts)
+		    hScript.onEndSong();
 
 		if (!isStoryMode)
 		{
@@ -1752,8 +1805,8 @@ class PlayState extends MusicBeatState
 		
 		camHUD.visible = true;
 
-		if (ScriptUtil.hasPause(scripts.executeAllFunc("countdown")))
-			return;
+		for (hScript in allScripts)
+            hScript.onStartCountdown();
 
 		startTimer = new FlxTimer().start(Conductor.crochet / 1000, function(tmr:FlxTimer)
 		{
@@ -1841,9 +1894,9 @@ class PlayState extends MusicBeatState
 
 					Conductor.songPosition = -(Conductor.crochet * 1);
 			}
-
-			scripts.executeAllFunc("countTick", [swagCounter]);
 			swagCounter += 1;
+			for (hScript in allScripts)
+				hScript.onCountdownTick(swagCounter);
 			// generateSong('fresh');
 		}, 5);
 	}
@@ -1854,160 +1907,4 @@ class PlayState extends MusicBeatState
 			cast(Object, FlxSprite).antialiasing = false;
 		return super.add(Object);
 	}
-
-	function initScripts()
-	{
-		if (scripts == null)
-			return;
-
-		var scriptData:Map<String, String> = [];
-
-		// SONG && GLOBAL SCRIPTS
-		var files:Array<String> = SONG.song == null ? [] : ScriptUtil.findScriptsInDir(Paths.getPreloadPath("songs/" + SONG.song));
-
-		if (FileSystem.exists("assets/scripts"))
-		{
-			for (_ in ScriptUtil.findScriptsInDir("assets/scripts"))
-				files.push(_);
-		}
-
-		for (file in files)
-		{
-			var hx:Null<String> = null;
-
-			if (FileSystem.exists(file))
-				hx = File.getContent(file);
-
-			if (hx != null)
-			{
-				var scriptName:String = CoolUtil.getFileStringFromPath(file);
-
-				if (!scriptData.exists(scriptName))
-				{
-					scriptData.set(scriptName, hx);
-				}
-			}
-		}
-
-		for (scriptName => hx in scriptData)
-		{
-			if (scripts.getScriptByTag(scriptName) == null)
-				scripts.addScript(scriptName).executeString(hx);
-			else
-			{
-				scripts.getScriptByTag(scriptName).error("Duplacite Script Error!", '$scriptName: Duplicate Script');
-			}
-		}
-	}
-
-	function onAddScript(script:Script)
-		{
-			script.set("PlayState", PlayState);
-			script.set("game", PlayState.instance);
-	
-			// FUNCTIONS
-	
-			//  CREATION FUNCTIONS
-			script.set("create", function() {});
-			//script.set("createStage", function(?stage:String) {}); // ! HAS PAUSE
-			//script.set("createPost", function() {});
-	
-			//  COUNTDOWN
-			script.set("countdown", function() {});
-			script.set("countTick", function(?tick:Int) {});
-	
-			//  SONG FUNCTIONS
-			script.set("startSong", function() {}); // ! HAS PAUSE
-			//script.set("endSong", function() {}); // ! HAS PAUSE
-			//script.set("beatHit", function(?beat:Int) {});
-			//script.set("stepHit", function(?step:Int) {});
-	
-			//  NOTE FUNCTIONS
-			//script.set("spawnNote", function(?note:Note) {}); // ! HAS PAUSE
-			//script.set("hitNote", function(?note:Note) {});
-			//script.set("oppHitNote", function(?note:Note) {});
-			//script.set("missNote", function(?note:Note) {});
-	
-			//script.set("notesUpdate", function() {}); // ! HAS PAUSE
-	
-			//script.set("ghostTap", function(?direction:Int) {});
-	
-			//  EVENT FUNCTIONS
-			//script.set("event", function(?event:String, ?val1:Dynamic, ?val2:Dynamic) {}); // ! HAS PAUSE
-			//script.set("earlyEvent", function(event:String) {});
-	
-			//  PAUSING / RESUMING
-			//script.set("pause", function() {}); // ! HAS PAUSE
-			//script.set("resume", function() {}); // ! HAS PAUSE
-	
-			//  GAMEOVER
-			//script.set("gameOver", function() {}); // ! HAS PAUSE
-	
-			//  MISC
-			//script.set("updatePost", function(?elapsed:Float) {});
-		//	script.set("recalcRating", function(?badHit:Bool = false) {}); // ! HAS PAUSE
-			//script.set("updateScore", function(?miss:Bool = false) {}); // ! HAS PAUSE
-	
-			// VARIABLES
-	
-			script.set("curStep", 0);
-			script.set("curBeat", 0);
-			script.set("bpm", 0);
-	
-			// OBJECTS
-			script.set("camGame", camGame);
-			script.set("camHUD", camHUD);
-			//script.set("camOther", camOther);
-			script.set("camCharacter", camCharacter);
-	
-			script.set("camFollow", camFollow);
-			script.set("prevCamFollow", prevCamFollow);
-	
-			// CHARACTERS
-			script.set("boyfriend", boyfriend);
-			script.set("dad", dadOpponent);
-			script.set("gf", gf);
-	
-			script.set("boyfriendGroup", boyfriendGroup);
-			script.set("dadGroup", dadGroup);
-			script.set("gfGroup", gfGroup);
-	
-			// NOTES
-			//script.set("notes", notes);
-			script.set("strumLines", strumLines);
-			script.set("boyfriendStrums", boyfriendStrums);
-			script.set("dadStrums", dadStrums);
-	
-			script.set("unspawnNotes", unspawnNotes);
-	
-			// MISC
-			script.set("add", function(obj:FlxBasic)
-			{
-				add(obj);
-				// if (front)
-				// {
-				// 	getInstance().add(obj);
-				// }
-				// else
-				// {
-				// 	if (PlayState.instance.isDead)
-				// 	{
-				// 		GameOverSubstate.instance.insert(GameOverSubstate.instance.members.indexOf(GameOverSubstate.instance.boyfriend), obj);
-				// 	}
-				// 	else
-				// 	{
-				// 		// var position:Int = PlayState.instance.members.indexOf(PlayState.instance.gfGroup);
-				// 		// if (PlayState.instance.members.indexOf(PlayState.instance.boyfriendGroup) < position)
-				// 		// {
-				// 		// 	position = PlayState.instance.members.indexOf(PlayState.instance.boyfriendGroup);
-				// 		// }
-				// 		// else if (PlayState.instance.members.indexOf(PlayState.instance.dadGroup) < position)
-				// 		// {
-				// 		// 	position = PlayState.instance.members.indexOf(PlayState.instance.dadGroup);
-				// 		// }
-				// 		PlayState.instance.insert(position, obj);
-				// 	}
-				// }
-			});
-		}
 }
