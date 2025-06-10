@@ -20,7 +20,6 @@ import meta.InfoHud;
 import meta.data.Conductor;
 import meta.data.Timings;
 import meta.state.PlayState;
-import Main;
 
 using StringTools;
 
@@ -40,7 +39,6 @@ class ClassHUD extends FlxTypedGroup<FlxBasic>
 	public var iconP1:HealthIcon;
 	public var iconP2:HealthIcon;
 	private var stupidHealth:Float = 0;
-	var icon_Zoom_Lerp = 0.045;
 
 	// eep
 	public function new()
@@ -104,27 +102,27 @@ class ClassHUD extends FlxTypedGroup<FlxBasic>
 		// pain, this is like the 7th attempt
 		healthBar.percent = (PlayState.health * 50);
 
+		var iconLerp = 0.5;
+		iconP1.setGraphicSize(Std.int(FlxMath.lerp(iconP1.initialWidth, iconP1.width, iconLerp)));
+		iconP2.setGraphicSize(Std.int(FlxMath.lerp(iconP2.initialWidth, iconP2.width, iconLerp)));
+
+		iconP1.updateHitbox();
+		iconP2.updateHitbox();
+
 		var iconOffset:Int = 26;
 
 		iconP1.x = healthBar.x + (healthBar.width * (FlxMath.remapToRange(healthBar.percent, 0, 100, 100, 0) * 0.01) - iconOffset);
 		iconP2.x = healthBar.x + (healthBar.width * (FlxMath.remapToRange(healthBar.percent, 0, 100, 100, 0) * 0.01)) - (iconP2.width - iconOffset);
 
-		if (iconP1.width == 450)
-			iconP1.animation.curAnim.curFrame = healthBar.percent < 20 ? 1 : healthBar.percent > 80 ? 2 : 0;
-		else if (iconP1.width == 300)
-			iconP1.animation.curAnim.curFrame = healthBar.percent < 20 ? 1 : 0;
-		else if (iconP1.width == 150)
+		if (healthBar.percent < 20)
+			iconP1.animation.curAnim.curFrame = 1;
+		else
 			iconP1.animation.curAnim.curFrame = 0;
 
-		if (iconP2.width == 450)
-			iconP2.animation.curAnim.curFrame = healthBar.percent > 20 ? 1 : healthBar.percent < 20 ? 2 : 0;
-		else if (iconP2.width == 300)
-			iconP2.animation.curAnim.curFrame = healthBar.percent > 20 ? 1 : 0;
-		else if (iconP2.width == 150)
+		if (healthBar.percent > 80)
+			iconP2.animation.curAnim.curFrame = 1;
+		else
 			iconP2.animation.curAnim.curFrame = 0;
-
-		iconP1.bop(elapsed);
-		iconP2.bop(elapsed);
 	}
 
 	private final divider:String = ' - ';
@@ -155,9 +153,10 @@ class ClassHUD extends FlxTypedGroup<FlxBasic>
 	{
 		if (!Init.trueSettings.get('Reduced Movements'))
 		{
-			iconP1.setGraphicSize(Std.int(iconP1.width + 30));
+			iconP1.setGraphicSize(Std.int(iconP1.width + 45));
+			iconP2.setGraphicSize(Std.int(iconP2.width + 45));
+
 			iconP1.updateHitbox();
-			iconP2.setGraphicSize(Std.int(iconP2.width + 30));
 			iconP2.updateHitbox();
 		}
 		//
