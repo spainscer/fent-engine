@@ -10,7 +10,6 @@ import flixel.FlxSubState;
 import flixel.addons.effects.FlxTrail;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.group.FlxGroup.FlxTypedGroup;
-import flixel.group.FlxSpriteGroup;
 import flixel.math.FlxMath;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRandom;
@@ -39,18 +38,16 @@ import openfl.filters.ShaderFilter;
 import openfl.media.Sound;
 import openfl.utils.Assets;
 import sys.io.File;
+<<<<<<< HEAD
 import meta.scripting.ScriptConstructor;
 import meta.scripting.HScript.Script;
+=======
+>>>>>>> parent of a98b43b (HScript Core)
 
 using StringTools;
 
 #if !html5
 import meta.data.dependency.Discord;
-#end
-
-#if sys
-import sys.FileSystem;
-import sys.io.File;
 #end
 
 class PlayState extends MusicBeatState
@@ -118,8 +115,10 @@ class PlayState extends MusicBeatState
 
 	public static var camHUD:FlxCamera;
 	public static var camGame:FlxCamera;
-	public static var camCharacter:FlxCamera;
 	public static var dialogueHUD:FlxCamera;
+
+	public var camDisplaceX:Float = 0;
+	public var camDisplaceY:Float = 0; // might not use depending on result
 
 	public static var defaultCamZoom:Float = 1.05;
 
@@ -144,10 +143,6 @@ class PlayState extends MusicBeatState
 	private var dadStrums:Strumline;
 	private var boyfriendStrums:Strumline;
 
-	public var boyfriendGroup:FlxSpriteGroup;
-	public var dadGroup:FlxSpriteGroup;
-	public var gfGroup:FlxSpriteGroup;
-
 	public static var strumLines:FlxTypedGroup<Strumline>;
 	public static var strumHUD:Array<FlxCamera> = [];
 
@@ -158,6 +153,7 @@ class PlayState extends MusicBeatState
 	// stores the last combo objects in an array
 	public static var lastCombo:Array<FlxSprite>;
 
+<<<<<<< HEAD
 	public static var instance:PlayState;
 	public var allScripts:Array<ScriptConstructor> = [];
 	var _scriptMap:Map<String, Script> = new Map<String, Script>();
@@ -165,13 +161,18 @@ class PlayState extends MusicBeatState
     public function getScriptVar(n:String, f:String)return getScript(n).get(f);
 	public static var stage:ScriptConstructor;
 
+=======
+>>>>>>> parent of a98b43b (HScript Core)
 	// at the beginning of the playstate
 	override public function create()
 	{
 		super.create();
 
+<<<<<<< HEAD
 		instance = this;
 
+=======
+>>>>>>> parent of a98b43b (HScript Core)
 		// reset any values and variables that are static
 		songScore = 0;
 		combo = 0;
@@ -200,11 +201,7 @@ class PlayState extends MusicBeatState
 		camHUD = new FlxCamera();
 		camHUD.bgColor.alpha = 0;
 
-		camCharacter = new FlxCamera();
-		camCharacter.bgColor.alpha = 0;
-
 		FlxG.cameras.reset(camGame);
-		FlxG.cameras.add(camCharacter);
 		FlxG.cameras.add(camHUD);
 		allUIs.push(camHUD);
 		FlxCamera.defaultCameras = [camGame];
@@ -244,6 +241,7 @@ class PlayState extends MusicBeatState
 		 */
 
 		// set up characters here too
+<<<<<<< HEAD
 		var gfVersion:String = 'gf';
 
 		switch (curStage)
@@ -259,9 +257,12 @@ class PlayState extends MusicBeatState
 		}
 
 		gf = new Character(0, 0, gfVersion);
+=======
+		gf = new Character(400, 130, stageBuild.returnGFtype(curStage));
+>>>>>>> parent of a98b43b (HScript Core)
 		gf.scrollFactor.set(0.95, 0.95);
-		gf.camera = camCharacter;
 
+<<<<<<< HEAD
 		dadOpponent = new Character(0, 0, SONG.player2);
 		boyfriend = new Boyfriend(0, 0, SONG.player1);
 		boyfriend.camera = camCharacter;
@@ -271,6 +272,10 @@ class PlayState extends MusicBeatState
 		dadGroup = new FlxSpriteGroup(100, 100);
 		gfGroup = new FlxSpriteGroup(400, 130);
 
+=======
+		dadOpponent = new Character(100, 100, SONG.player2);
+		boyfriend = new Boyfriend(770, 450, SONG.player1);
+>>>>>>> parent of a98b43b (HScript Core)
 		// if you want to change characters later use setCharacter() instead of new or it will break
 
 		var camPos:FlxPoint = new FlxPoint(gf.getMidpoint().x - 100, boyfriend.getMidpoint().y - 100);
@@ -292,20 +297,16 @@ class PlayState extends MusicBeatState
 		//stageBuild.repositionPlayers(curStage, boyfriend, dadOpponent, gf);
 
 		// add characters
-		gfGroup.add(gf);
+		add(gf);
 
 		// add limo cus dumb layering
 		// if (curStage == 'highway')
 		// 	add(stageBuild.limo);
 
-		dadGroup.add(dadOpponent);
-		boyfriendGroup.add(boyfriend);
+		add(dadOpponent);
+		add(boyfriend);
 
 		//add(stageBuild.foreground);
-
-		add(gfGroup);
-		add(dadGroup);
-		add(boyfriendGroup);
 
 		// force them to dance
 		dadOpponent.dance();
@@ -347,10 +348,6 @@ class PlayState extends MusicBeatState
 		FlxG.camera.follow(camFollow, LOCKON, camLerp);
 		FlxG.camera.zoom = defaultCamZoom;
 		FlxG.camera.focusOn(camFollow.getPosition());
-
-		camCharacter.follow(camFollow, LOCKON, camLerp);
-		camCharacter.zoom = defaultCamZoom;
-		camCharacter.focusOn(camFollow.getPosition());
 
 		FlxG.worldBounds.set(0, 0, FlxG.width, FlxG.height);
 
@@ -474,7 +471,6 @@ class PlayState extends MusicBeatState
 		super.update(elapsed);
 
 		FlxG.camera.followLerp = elapsed * 2;
-		camCharacter.followLerp = elapsed * 2;
 
 		for (hScript in allScripts)
 		    hScript.update(elapsed);
@@ -501,10 +497,6 @@ class PlayState extends MusicBeatState
 			}
 
 		}
-
-		var focusedCharacter;
-		var getCharX;
-		var getCharY;
 
 		if (!inCutscene) {
 			// pause the game if the game is allowed to pause and enter is pressed
@@ -579,23 +571,22 @@ class PlayState extends MusicBeatState
 				if (!PlayState.SONG.notes[Std.int(curStep / 16)].mustHitSection)
 				{
 					var char = dadOpponent;
-					focusedCharacter = char;
 
-					getCharX = char.getMidpoint().x + 150;
-					getCharY = char.getMidpoint().y - 100;
+					var getCenterX = char.getMidpoint().x + 150;
+					var getCenterY = char.getMidpoint().y - 100;
 					switch (dadOpponent.curCharacter)
 					{
 						case 'mom':
-							getCharY = char.getMidpoint().y;
+							getCenterY = char.getMidpoint().y;
 						case 'senpai':
-							getCharY = char.getMidpoint().y - 430;
-							getCharX = char.getMidpoint().x - 100;
+							getCenterY = char.getMidpoint().y - 430;
+							getCenterX = char.getMidpoint().x - 100;
 						case 'senpai-angry':
-							getCharY = char.getMidpoint().y - 430;
-							getCharX = char.getMidpoint().x - 100;
+							getCenterY = char.getMidpoint().y - 430;
+							getCenterX = char.getMidpoint().x - 100;
 					}
 
-					//camFollow.setPosition(getCharX, getCharY);
+					camFollow.setPosition(getCenterX + (camDisplaceX * 8), getCenterY);
 
 					if (char.curCharacter == 'mom')
 						vocals.volume = 1;
@@ -610,25 +601,24 @@ class PlayState extends MusicBeatState
 				else
 				{
 					var char = boyfriend;
-					focusedCharacter = char;
 
-					getCharX = char.getMidpoint().x - 100;
-					getCharY = char.getMidpoint().y - 100;
+					var getCenterX = char.getMidpoint().x - 100;
+					var getCenterY = char.getMidpoint().y - 100;
 					switch (curStage)
 					{
 						case 'limo':
-							getCharX = char.getMidpoint().x - 300;
+							getCenterX = char.getMidpoint().x - 300;
 						case 'mall':
-							getCharY = char.getMidpoint().y - 200;
+							getCenterY = char.getMidpoint().y - 200;
 						case 'school':
-							getCharX = char.getMidpoint().x - 200;
-							getCharY = char.getMidpoint().y - 200;
+							getCenterX = char.getMidpoint().x - 200;
+							getCenterY = char.getMidpoint().y - 200;
 						case 'schoolEvil':
-							getCharX = char.getMidpoint().x - 200;
-							getCharX = char.getMidpoint().y - 200;
+							getCenterX = char.getMidpoint().x - 200;
+							getCenterY = char.getMidpoint().y - 200;
 					}
 
-					//camFollow.setPosition(getCharX, getCharY);
+					camFollow.setPosition(getCenterX + (camDisplaceX * 8), getCenterY);
 
 					/*
 						if (SONG.song.toLowerCase() == 'tutorial')
@@ -637,46 +627,18 @@ class PlayState extends MusicBeatState
 						}
 					 */
 				}
-
-				var charAnimOffsetX:Float = 0;
-				var charAnimOffsetY:Float = 0;
-				if(focusedCharacter!=null){
-					if(focusedCharacter.animation.curAnim!=null){
-						switch (focusedCharacter.animation.curAnim.name.substring(4)){
-							case 'UP' | 'UP-alt' | 'UPmiss':
-								charAnimOffsetY -= 20;
-							case 'DOWN' | 'DOWN-alt' |  'DOWNmiss':
-								charAnimOffsetY += 20;
-							case 'LEFT' | 'LEFT-alt' | 'LEFTmiss':
-								charAnimOffsetX -= 20;
-							case 'RIGHT' | 'RIGHT-alt' | 'RIGHTmiss':
-								charAnimOffsetX += 20;
-						}
-					}
-				}
-
-				var lerpVal:Float = CoolUtil.boundTo(elapsed * 2.4, 0, 1);
-            	camFollow.setPosition(
-					FlxMath.lerp(camFollow.x, getCharX + charAnimOffsetX, lerpVal),
-					FlxMath.lerp(camFollow.y, getCharY + charAnimOffsetY, lerpVal)
-				);
-            	var angleLerp:Float = CoolUtil.boundTo(CoolUtil.boundTo(elapsed * 2.4 / 0.4, 0, 1), 0, 1);
-				camGame.angle = FlxMath.lerp(camGame.angle, 0 + charAnimOffsetX / 30, angleLerp);
-				camCharacter.angle = FlxMath.lerp(camGame.angle, 0 + charAnimOffsetX / 30, angleLerp);
 			}
 
 			var easeLerp = 0.95;
 			// camera stuffs
 			FlxG.camera.zoom = FlxMath.lerp(defaultCamZoom + forceZoom[0], FlxG.camera.zoom, easeLerp);
-			camCharacter.zoom = FlxMath.lerp(defaultCamZoom + forceZoom[0], camCharacter.zoom, easeLerp);
 			for (hud in allUIs)
 				hud.zoom = FlxMath.lerp(1 + forceZoom[1], hud.zoom, easeLerp);
 
 			// not even forcezoom anymore but still
-			// FlxG.camera.angle = FlxMath.lerp(0 + forceZoom[2], FlxG.camera.angle, easeLerp);
-			// camCharacter.angle = FlxMath.lerp(0 + forceZoom[2], camCharacter.angle, easeLerp);
-			// for (hud in allUIs)
-			// 	hud.angle = FlxMath.lerp(0 + forceZoom[3], hud.angle, easeLerp);
+			FlxG.camera.angle = FlxMath.lerp(0 + forceZoom[2], FlxG.camera.angle, easeLerp);
+			for (hud in allUIs)
+				hud.angle = FlxMath.lerp(0 + forceZoom[3], hud.angle, easeLerp);
 
 			if (health <= 0 && startedCountdown)
 			{
@@ -1138,7 +1100,28 @@ class PlayState extends MusicBeatState
 		}
 
 		// unoptimised asf camera control based on strums
-		//strumCameraRoll(strumline.receptors, daNote.mustPress);
+		strumCameraRoll(strumline.receptors, daNote.mustPress);
+	}
+
+	private function strumCameraRoll(cStrum:FlxTypedGroup<UIStaticArrow>, mustHit:Bool)
+	{
+		if (!Init.trueSettings.get('No Camera Note Movement'))
+		{
+			var camDisplaceExtend:Float = 1.5;
+			var camDisplaceSpeed = 0.0125;
+			if (PlayState.SONG.notes[Std.int(curStep / 16)] != null)
+			{
+				if ((PlayState.SONG.notes[Std.int(curStep / 16)].mustHitSection && mustHit)
+					|| (!PlayState.SONG.notes[Std.int(curStep / 16)].mustHitSection && !mustHit))
+				{
+					if ((cStrum.members[0].animation.curAnim.name == 'confirm') && (camDisplaceX > -camDisplaceExtend))
+						camDisplaceX -= camDisplaceSpeed;
+					else if ((cStrum.members[3].animation.curAnim.name == 'confirm') && (camDisplaceX < camDisplaceExtend))
+						camDisplaceX += camDisplaceSpeed;
+				}
+			}
+		}
+		//
 	}
 
 	override public function onFocus():Void
@@ -1182,8 +1165,6 @@ class PlayState extends MusicBeatState
 		if (baseRating == "sick")
 			// create the note splash if you hit a sick
 			createSplash(coolNote, strumline);
-			// if (coolNote.isSustainNote)
-			// 	ForeverAssets.generateHoldSplashes(coolNote.noteData, coolNote.isSustainNoteEnd);
 		else
  			// if it isn't a sick, and you had a sick combo, then it becomes not sick :(
 			if (allSicks)
@@ -1256,8 +1237,11 @@ class PlayState extends MusicBeatState
 			if (preload)
 				numScore.visible = false;
 			// hardcoded lmao
+			if (Init.trueSettings.get('Fixed Judgements'))
+			{
 				numScore.cameras = [camHUD];
 				numScore.y += 50;
+			}
 				numScore.x += 100;
 		}
 	}
@@ -1346,8 +1330,12 @@ class PlayState extends MusicBeatState
 		}
 		// */
 
-		rating.cameras = [camHUD];
-		rating.screenCenter();
+		if (Init.trueSettings.get('Fixed Judgements'))
+		{
+			// bound to camera
+			rating.cameras = [camHUD];
+			rating.screenCenter();
+		}
 
 		// return the actual rating to the array of judgements
 		Timings.gottenJudgements.set(daRating, Timings.gottenJudgements.get(daRating) + 1);
@@ -1376,9 +1364,12 @@ class PlayState extends MusicBeatState
 		previousFrameTime = FlxG.game.ticks;
 		lastReportedPlayheadPosition = 0;
 
+<<<<<<< HEAD
 		for (hScript in allScripts)
 		    hScript.onSongStart();
 
+=======
+>>>>>>> parent of a98b43b (HScript Core)
 		if (!paused)
 		{
 			songMusic.play();
@@ -1481,13 +1472,16 @@ class PlayState extends MusicBeatState
 	{
 		super.beatHit();
 
+<<<<<<< HEAD
 		for (hScript in allScripts)
 		    hScript.onBeatHit(curBeat);
 
 		if ((FlxG.camera.zoom < 1.35 && camCharacter.zoom < 1.35 && curBeat % 4 == 0) && (!Init.trueSettings.get('Reduced Movements')))
+=======
+		if ((FlxG.camera.zoom < 1.35 && curBeat % 4 == 0) && (!Init.trueSettings.get('Reduced Movements')))
+>>>>>>> parent of a98b43b (HScript Core)
 		{
 			FlxG.camera.zoom += 0.015;
-			camCharacter.zoom += 0.015;
 			camHUD.zoom += 0.05;
 			for (hud in strumHUD)
 				hud.zoom += 0.05;
@@ -1677,8 +1671,6 @@ class PlayState extends MusicBeatState
 					camFollow.x += 200;
 					FlxG.camera.focusOn(camFollow.getPosition());
 					FlxG.camera.zoom = 1.5;
-					camCharacter.focusOn(camFollow.getPosition());
-					camCharacter.zoom = 1.5;
 
 					new FlxTimer().start(0.8, function(tmr:FlxTimer)
 					{
@@ -1692,14 +1684,7 @@ class PlayState extends MusicBeatState
 							}
 							
 						});
-						FlxTween.tween(camCharacter, {zoom: defaultCamZoom}, 2.5, {
-							ease: FlxEase.quadInOut,
-							onComplete: function(twn:FlxTween)
-							{
-								startCountdown();
-							}
-							
-						});
+						
 					});
 				});
 			case 'roses':
@@ -1743,12 +1728,10 @@ class PlayState extends MusicBeatState
 									hud.visible = true;
 								callTextbox();
 							}, true);
-							camCharacter.fade(FlxColor.WHITE, 0.01, true);
 						});
 						new FlxTimer().start(3.2, function(deadTime:FlxTimer)
 						{
 							FlxG.camera.fade(FlxColor.WHITE, 1.6, false);
-							camCharacter.fade(FlxColor.WHITE, 1.6, false);
 						});
 					}
 				});
@@ -1805,9 +1788,12 @@ class PlayState extends MusicBeatState
 		
 		camHUD.visible = true;
 
+<<<<<<< HEAD
 		for (hScript in allScripts)
             hScript.onStartCountdown();
 
+=======
+>>>>>>> parent of a98b43b (HScript Core)
 		startTimer = new FlxTimer().start(Conductor.crochet / 1000, function(tmr:FlxTimer)
 		{
 			startedCountdown = true;
@@ -1894,6 +1880,10 @@ class PlayState extends MusicBeatState
 
 					Conductor.songPosition = -(Conductor.crochet * 1);
 			}
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of a98b43b (HScript Core)
 			swagCounter += 1;
 			for (hScript in allScripts)
 				hScript.onCountdownTick(swagCounter);

@@ -2,17 +2,11 @@ package meta;
 
 import lime.utils.Assets;
 import meta.state.PlayState;
-import haxe.io.Path;
 
 using StringTools;
 
 #if !html5
 import sys.FileSystem;
-#end
-
-#if sys
-import sys.FileSystem;
-import sys.io.File;
 #end
 
 class CoolUtil
@@ -25,6 +19,7 @@ class CoolUtil
 	public static var difficultyArray:Array<String> = ['EASY', "NORMAL", "HARD"];
 	public static var difficultyLength = difficultyArray.length;
 
+<<<<<<< HEAD
 	public static inline function getFileStringFromPath(file:String):String
 		return Path.withoutDirectory(Path.withoutExtension(file));
 
@@ -65,6 +60,8 @@ class CoolUtil
 		return files;
 	}
 
+=======
+>>>>>>> parent of a98b43b (HScript Core)
 	public static function difficultyFromNumber(number:Int):String
 	{
 		return difficultyArray[number];

@@ -46,7 +46,6 @@
 
 	<haxelib name="flixel-addons" />
 	<haxelib name="hscript" />
-	<define name="hscriptPos" />
 	<haxelib name="flixel-ui"/>
 	<haxelib name="polymod"/>
  	<haxelib name="discord_rpc"/>

@@ -10,9 +10,8 @@ haxelib install openfl
 haxelib install flixel 4.8.1
 haxelib install flixel-addons 2.11.0
 haxelib install flixel-ui 2.4.0
-haxelib install newgrounds
 haxelib install hscript
-haxelib install hscriptPos
+haxelib install newgrounds
 haxelib run lime setup
 haxelib install flixel-tools
 title FNF Setup - User action required

@@ -102,7 +102,7 @@ class Paths
 		return '$library/$file';
 	}
 
-	public inline static function getPreloadPath(file:String)
+	inline static function getPreloadPath(file:String)
 	{
 		return 'assets/$file';
 	}
